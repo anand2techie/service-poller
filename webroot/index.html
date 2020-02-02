@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <style>
+        .container {
+            padding-top: 3rem!important
+        }
+        .removal-badge {
+            padding: 0.6em;
+            cursor: pointer;
+        }
+    </style>
+    <title>Welcome to KRY – Website Statuses</title>
+</head>
+<body>
+    <div class='container'>
+        <h1>KRY Status Poller</h1>
+        <p class="lead">Rudimentary website status poller. Allows you to add websites to poll the status for.</p>
+        <h2>Statuses</h2>
+        <div>
+            <ul id="service-list" class="list-group">
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                Test
+                <span class="badge badge-primary badge-pill">14</span>
+              </li>
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                Test 2
+                <span class="badge badge-primary badge-pill">2</span>
+              </li>
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                Test 3
+                <span class="badge badge-danger badge-pill">Remove</span>
+              </li>
+            </ul>
+        </div>
+        <hr class="mb-4">
+        <form class="form-inline mb-4">
+          <div class="form-group mb-2">
+            <label for="url-name" class="sr-only">Service URL</label>
+            <input type="text" class="form-control" id="url-name" placeholder="https://kry.se">
+          </div>
+          &nbsp;
+          &nbsp;
+          <button type="submit" id="post-service" class="btn btn-primary mb-1">Add service</button>
+        </form>
+    </div>
+</body>
+<script>
+    function createServiceNode(service) {
+        var serviceNode = document.createTextNode(service.name + ': ' + service.status)
+        var deletion = document.createElement('span');
+        deletion.setAttribute('data-service-name', service.name);
+        deletion.setAttribute('onclick', 'removeService(this)')
+        deletion.classList.add('badge');
+        deletion.classList.add('badge-danger');
+        deletion.classList.add('badge-pill');
+        deletion.classList.add('removal-badge');
+        deletion.innerHTML = "Remove";
+
+        var li = document.createElement('li');
+        li.classList.add('list-group-item');
+        li.classList.add('d-flex');
+        li.classList.add('justify-content-between');
+        li.classList.add('align-items-center');
+        li.appendChild(serviceNode);
+        li.appendChild(deletion);
+
+        return li;
+    }
+
+    function removeService(caller) {
+        let serviceName = caller.getAttribute('data-service-name');
+        let deleteRequest = new Request('/service/' + btoa(serviceName));
+        fetch(deleteRequest, {
+            method: 'delete'
+        })
+        .then(function(response) { updateServiceList(); });
+    }
+
+    function updateServiceList() {
+        const listContainer = document.querySelector('#service-list');
+        let servicesRequest = new Request('/service');
+        fetch(servicesRequest)
+        .then(function(response) { return response.json(); })
+        .then(function(serviceList) {
+          while (listContainer.firstChild) {
+            listContainer.removeChild(listContainer.firstChild);
+          }
+          serviceList.forEach(service => {
+            listContainer.appendChild(createServiceNode(service));
+          });
+        });
+    }
+
+    function parseConfig(config) {
+        setInterval(updateServiceList, config.refreshInterval);
+    }
+
+    let configRequest = new Request("/config");
+    fetch(configRequest)
+    .then(function(response) { return response.json(); })
+    .then(function(config) {
+        parseConfig(config);
+    })
+
+    updateServiceList();
+
+    const saveButton = document.querySelector('#post-service');
+    saveButton.onclick = evt => {
+        let urlName = document.querySelector('#url-name').value;
+        fetch('/service', {
+        method: 'post',
+        headers: {
+        'Accept': 'application/json, text/plain, */*',
+        'Content-Type': 'application/json'
+        },
+      body: JSON.stringify({url:urlName})
+    }).then(res=> {
+        document.querySelector('#url-name').value = "";
+        updateServiceList();
+    })}
+</script>
+</html>
