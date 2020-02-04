@@ -1,23 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="b3c26c7f-7da6-4c40-915b-81549f3c7622" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/poller.db" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/se/kry/codetest/migrate/DBMigration.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/se/kry/codetest/repository/ServiceRepository.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/se/kry/codetest/util/DBConnector.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/codetest.ipr" beforeDir="false" afterPath="$PROJECT_DIR$/codetest.ipr" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/codetest.iws" beforeDir="false" afterPath="$PROJECT_DIR$/codetest.iws" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/codetest.main.iml" beforeDir="false" afterPath="$PROJECT_DIR$/codetest.main.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/codetest.test.iml" beforeDir="false" afterPath="$PROJECT_DIR$/codetest.test.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/se/kry/codetest/BackgroundPoller.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/se/kry/codetest/BackgroundPoller.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/se/kry/codetest/MainVerticle.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/se/kry/codetest/MainVerticle.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/se/kry/codetest/TestBackgroundPoller.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/se/kry/codetest/TestBackgroundPoller.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/se/kry/codetest/TestMainVerticle.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/se/kry/codetest/TestMainVerticle.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/se/kry/codetest/TestMainVerticleUtilities.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/webroot/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/webroot/index.html" afterDir="false" />
-    </list>
+    <list default="true" id="b3c26c7f-7da6-4c40-915b-81549f3c7622" name="Default Changelist" comment="" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
