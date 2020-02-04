@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="b3c26c7f-7da6-4c40-915b-81549f3c7622" name="Default Changelist" comment="" />
+    <list default="true" id="b3c26c7f-7da6-4c40-915b-81549f3c7622" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/codetest.iws" beforeDir="false" afterPath="$PROJECT_DIR$/codetest.iws" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/poller.db" beforeDir="false" afterPath="$PROJECT_DIR$/poller.db" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/se/kry/codetest/TestMainVerticle.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/se/kry/codetest/TestMainVerticle.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/webroot/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/webroot/index.html" afterDir="false" />
+    </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -125,7 +130,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Application.Start">
+  <component name="RunManager" selected="Gradle.TestMainVerticle.delete_existing_service">
     <configuration name="&lt;template&gt;" type="WebApp" default="true" selected="false">
       <Host>localhost</Host>
       <Port>5050</Port>
@@ -144,21 +149,6 @@
       <extension name="coverage">
         <pattern>
           <option name="PATTERN" value="se.kry.codetest.migrate.*" />
-          <option name="ENABLED" value="true" />
-        </pattern>
-      </extension>
-      <method v="2">
-        <option name="BuildArtifacts" enabled="false" />
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
-    <configuration name="Start" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="se.kry.codetest.Start" />
-      <module name="codetest.main" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <extension name="coverage">
-        <pattern>
-          <option name="PATTERN" value="se.kry.codetest.*" />
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
@@ -200,6 +190,26 @@
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
         <option name="externalSystemIdString" value="GRADLE" />
         <option name="scriptParameters" value="--tests &quot;se.kry.codetest.TestMainVerticle&quot;" />
+        <option name="taskDescriptions">
+          <list />
+        </option>
+        <option name="taskNames">
+          <list>
+            <option value=":cleanTest" />
+            <option value=":test" />
+          </list>
+        </option>
+        <option name="vmOptions" />
+      </ExternalSystemSettings>
+      <GradleScriptDebugEnabled>false</GradleScriptDebugEnabled>
+      <method v="2" />
+    </configuration>
+    <configuration name="TestMainVerticle.delete_existing_service" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+      <ExternalSystemSettings>
+        <option name="executionName" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="externalSystemIdString" value="GRADLE" />
+        <option name="scriptParameters" value="--tests &quot;se.kry.codetest.TestMainVerticle.delete_existing_service&quot;" />
         <option name="taskDescriptions">
           <list />
         </option>
@@ -259,11 +269,11 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Gradle.TestMainVerticle.delete_existing_service" />
         <item itemvalue="Gradle.TestMainVerticle" />
         <item itemvalue="Gradle.TestBackgroundPoller" />
         <item itemvalue="Application.DBMigration" />
         <item itemvalue="Gradle.Tests in 'se.kry.codetest'" />
-        <item itemvalue="Application.Start" />
       </list>
     </recent_temporary>
   </component>
@@ -285,7 +295,9 @@
       <map>
         <entry key="MAIN">
           <value>
-            <State />
+            <State>
+              <option name="COLUMN_ORDER" />
+            </State>
           </value>
         </entry>
       </map>
@@ -308,6 +320,11 @@
           <url>file://$PROJECT_DIR$/src/main/java/se/kry/codetest/MainVerticle.java</url>
           <line>83</line>
           <option name="timeStamp" value="4" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/test/java/se/kry/codetest/TestMainVerticle.java</url>
+          <line>126</line>
+          <option name="timeStamp" value="7" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
