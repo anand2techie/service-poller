@@ -1,79 +1,47 @@
 package se.kry.codetest;
 
-import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
-import com.sun.net.httpserver.HttpServer;
-import org.junit.jupiter.api.DisplayName;
+import io.vertx.core.Future;
+import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonObject;
+import io.vertx.junit5.Timeout;
+import io.vertx.junit5.VertxExtension;
+import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.net.InetSocketAddress;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+@ExtendWith(VertxExtension.class)
 public class TestBackgroundPoller {
-    BackgroundPoller backgroundPoller = new BackgroundPoller();
 
-    @Test
-    @DisplayName("Poll a non functional website")
-    void pollNonFunctionalWebsite() {
-        Map<String, String> services = new HashMap<String, String>();
-        services.put("http://does-not-exist", "UNKNOWN");
-        backgroundPoller.pollServices(services);
+  @Test
+  @Timeout(value = 10, timeUnit = TimeUnit.SECONDS)
+  void test_valid_url(Vertx vertx, VertxTestContext testContext) {
+    List<JsonObject> services = Collections.singletonList(new JsonObject().put("url", "https://www.kry.se"));
+    Optional<Future<JsonObject>> optionalFuture = new BackgroundPoller(vertx).pollServices(services).stream().findFirst();
+    assert (optionalFuture.isPresent());
+    optionalFuture.ifPresent(future -> future.setHandler(result -> testContext.verify(() -> {
+          assertEquals("OK", result.result().getString("status"));
+          testContext.completeNow();
+        })
+    ));
+  }
 
-        assertEquals("could not connect", services.get("http://does-not-exist").toLowerCase());
-    }
-
-    @Test
-    @DisplayName("Poll a slow website")
-    void pollSlowWebsite() throws IOException {
-        int port = startServer(5 * 1000);
-        Map<String, String> services = new HashMap<String, String>();
-        services.put("http://localhost:" + port, "UNKNOWN");
-        backgroundPoller.pollServices(services);
-
-        assertEquals("connection timeout", services.get("http://localhost:" + port).toLowerCase());
-    }
-
-    @Test
-    @DisplayName("Poll a functional website")
-    void pollFunctionalWebsite() throws IOException {
-        int port = startServer(0);
-        Map<String, String> services = new HashMap<String, String>();
-        services.put("http://localhost:" + port, "UNKNOWN");
-        backgroundPoller.pollServices(services);
-
-        assertEquals("200", services.get("http://localhost:" + port).toLowerCase());
-    }
-
-    private int startServer(long delay) throws IOException {
-        HttpServer server = HttpServer.create(new InetSocketAddress(0), 0);
-        server.createContext("/", new TestHandler(delay));
-        server.setExecutor(null); // creates a default executor
-        server.start();
-        return server.getAddress().getPort();
-    }
-
-    static class TestHandler implements HttpHandler {
-        private long delay;
-
-        TestHandler(long delay) {
-            this.delay = delay;
-        }
-
-        @Override
-        public void handle(HttpExchange t) throws IOException {
-            try {
-                Thread.sleep(delay);
-            } catch (InterruptedException e) {
-            }
-            t.sendResponseHeaders(200, "Echo".length());
-            OutputStream os = t.getResponseBody();
-            os.write("Echo".getBytes());
-            os.close();
-        }
-    }
+  @Test
+  @Timeout(value = 10, timeUnit = TimeUnit.SECONDS)
+  void test_invalid_url(Vertx vertx, VertxTestContext testContext) {
+    List<JsonObject> services = Collections.singletonList(new JsonObject().put("url", "www.kry.se"));
+    Optional<Future<JsonObject>> optionalFuture = new BackgroundPoller(vertx).pollServices(services).stream().findFirst();
+    assert (optionalFuture.isPresent());
+    optionalFuture.ifPresent(future -> future.setHandler(result -> testContext.verify(() -> {
+          assertEquals("FAIL", result.result().getString("status"));
+          testContext.completeNow();
+        })
+    ));
+  }
 }

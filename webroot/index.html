@@ -72,6 +72,7 @@
 
     function removeService(caller) {
         let serviceName = caller.getAttribute('data-service-name');
+        alert(serviceName);
         let deleteRequest = new Request('/service/' + btoa(serviceName));
         fetch(deleteRequest, {
             method: 'delete'

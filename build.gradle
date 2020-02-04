@@ -1,17 +1,16 @@
 plugins {
-  id 'java'
-  id 'idea'
-  id 'application'
-  id 'com.github.johnrengelman.shadow' version '2.0.4'
+    id 'java'
+    id 'application'
+    id 'com.github.johnrengelman.shadow' version '2.0.4'
 }
 ext {
-  vertxVersion = '3.6.3'
-  junitJupiterEngineVersion = '5.2.0'
+    vertxVersion = '3.6.3'
+    junitJupiterEngineVersion = '5.2.0'
 }
 
 repositories {
-  mavenLocal()
-  jcenter()
+    mavenLocal()
+    jcenter()
 }
 
 group = 'se.kry'
@@ -26,33 +25,35 @@ def doOnChange = './gradlew classes'
 
 dependencies {
 
-  implementation "io.vertx:vertx-core:$vertxVersion"
-  implementation "io.vertx:vertx-core:$vertxVersion"
-  implementation "io.vertx:vertx-web:$vertxVersion"
-  implementation "io.vertx:vertx-web-client:$vertxVersion"
+    implementation "io.vertx:vertx-core:$vertxVersion"
+    implementation "io.vertx:vertx-core:$vertxVersion"
+    implementation "io.vertx:vertx-web:$vertxVersion"
+    implementation "io.vertx:vertx-web-client:$vertxVersion"
+    compile group: 'org.xerial', name: 'sqlite-jdbc', version: '3.7.2'
+    compile "io.vertx:vertx-jdbc-client:$vertxVersion"
 
-  testImplementation "io.vertx:vertx-junit5:$vertxVersion"
-  testRuntime("org.junit.jupiter:junit-jupiter-engine:$junitJupiterEngineVersion")
+    testImplementation "io.vertx:vertx-junit5:$vertxVersion"
+    testRuntime("org.junit.jupiter:junit-jupiter-engine:$junitJupiterEngineVersion")
 }
 
 
 shadowJar {
-  classifier = 'fat'
-  manifest {
-    attributes 'Main-Verticle': mainVerticleName
-  }
-  mergeServiceFiles {
-    include 'META-INF/services/io.vertx.core.spi.VerticleFactory'
-  }
+    classifier = 'fat'
+    manifest {
+        attributes 'Main-Verticle': mainVerticleName
+    }
+    mergeServiceFiles {
+        include 'META-INF/services/io.vertx.core.spi.VerticleFactory'
+    }
 }
 
 test {
-  useJUnitPlatform()
-  testLogging {
-    events 'PASSED', 'FAILED', 'SKIPPED'
-  }
+    useJUnitPlatform()
+    testLogging {
+        events 'PASSED', 'FAILED', 'SKIPPED'
+    }
 }
 
 run {
-  args = ['run', mainVerticleName, "--redeploy=$watchForChange", "--launcher-class=$mainClassName", "--on-redeploy=$doOnChange"]
+    args = ['run', mainVerticleName, "--redeploy=$watchForChange", "--launcher-class=$mainClassName", "--on-redeploy=$doOnChange"]
 }

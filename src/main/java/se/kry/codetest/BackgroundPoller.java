@@ -1,37 +1,45 @@
 package se.kry.codetest;
 
 import io.vertx.core.Future;
+import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonObject;
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
+import io.vertx.ext.web.client.WebClient;
 
-import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.SocketTimeoutException;
-import java.net.URL;
 import java.util.List;
-import java.util.Map;
+import java.util.stream.Collectors;
 
-class BackgroundPoller {
-    Future<List<String>> pollServices(Map<String, String> services) {
-        services.forEach((url, status) -> services.put(url, pollService(url)));
-        return Future.succeededFuture();
+public class BackgroundPoller {
+    private final WebClient client;
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
+
+    public BackgroundPoller(Vertx vertx) {
+        client = WebClient.create(vertx);
     }
 
-    private String pollService(String service) {
-        int code;
+    public List<Future<JsonObject>> pollServices(List<JsonObject> services) {
+        return services.parallelStream().map(this::test).collect(Collectors.toList());
+    }
+
+    private Future<JsonObject> test(JsonObject service) {
+        String url = service.getString("url");
+        logger.info("Testing:" + url);
+        Future<JsonObject> statusFuture = Future.future();
         try {
-            URL url = new URL(service);
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("GET");
-            connection.setConnectTimeout(1000);
-            connection.setReadTimeout(1000);
-            connection.connect();
-
-            code = connection.getResponseCode();
-        } catch (SocketTimeoutException e) {
-            return "Connection Timeout";
-        } catch (IOException e) {
-            return "Could not connect";
+            client.getAbs(url)
+                .send(response -> {
+                    if (response.succeeded()) {
+                        statusFuture
+                            .complete(service.put("status", 200 == response.result().statusCode() ? "OK" : "FAIL"));
+                    } else {
+                        statusFuture.complete(service.put("status", "FAIL"));
+                    }
+                });
+        } catch (Exception e) {
+            logger.error("Failed to test " + url, e);
+            statusFuture.complete(service.put("status", "FAIL"));
         }
-
-        return String.valueOf(code);
+        return statusFuture;
     }
 }

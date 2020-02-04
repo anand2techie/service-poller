@@ -8,11 +8,15 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="Gradle: org.xerial:sqlite-jdbc:3.7.2" level="project" />
+    <orderEntry type="library" name="Gradle: io.vertx:vertx-jdbc-client:3.6.3" level="project" />
     <orderEntry type="library" name="Gradle: io.vertx:vertx-web:3.6.3" level="project" />
     <orderEntry type="library" name="Gradle: io.vertx:vertx-web-client:3.6.3" level="project" />
+    <orderEntry type="library" name="Gradle: io.vertx:vertx-sql-common:3.6.3" level="project" />
     <orderEntry type="library" name="Gradle: io.vertx:vertx-web-common:3.6.3" level="project" />
     <orderEntry type="library" name="Gradle: io.vertx:vertx-auth-common:3.6.3" level="project" />
     <orderEntry type="library" name="Gradle: io.vertx:vertx-core:3.6.3" level="project" />
+    <orderEntry type="library" name="Gradle: com.mchange:c3p0:0.9.5.2" level="project" />
     <orderEntry type="library" name="Gradle: io.netty:netty-codec-http2:4.1.30.Final" level="project" />
     <orderEntry type="library" name="Gradle: io.netty:netty-handler:4.1.30.Final" level="project" />
     <orderEntry type="library" name="Gradle: io.netty:netty-handler-proxy:4.1.30.Final" level="project" />
@@ -28,6 +32,7 @@
     <orderEntry type="library" name="Gradle: com.fasterxml.jackson.core:jackson-databind:2.9.8" level="project" />
     <orderEntry type="library" name="Gradle: com.fasterxml.jackson.core:jackson-core:2.9.8" level="project" />
     <orderEntry type="library" name="Gradle: io.vertx:vertx-bridge-common:3.6.3" level="project" />
+    <orderEntry type="library" name="Gradle: com.mchange:mchange-commons-java:0.2.11" level="project" />
     <orderEntry type="library" name="Gradle: com.fasterxml.jackson.core:jackson-annotations:2.9.0" level="project" />
   </component>
 </module>

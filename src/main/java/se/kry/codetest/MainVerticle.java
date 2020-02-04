@@ -4,64 +4,70 @@ import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.StaticHandler;
+import se.kry.codetest.repository.ServiceRepository;
+import se.kry.codetest.util.DBConnector;
 
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.time.Instant;
 import java.util.Base64;
-import java.util.HashMap;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class MainVerticle extends AbstractVerticle {
     private static int REFRESH_INTERVAL = 1000 * 5;
-    private static String SERVICE_CACHE = "/tmp/kry_services.cache";
 
     private final int refreshInterval;
-    private final String serviceCache;
 
-    private HashMap<String, String> services = new HashMap<>();
-    private BackgroundPoller poller = new BackgroundPoller();
+    private BackgroundPoller poller;
+    private ServiceRepository serviceRepository;
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     public MainVerticle() {
         this.refreshInterval = REFRESH_INTERVAL;
-        this.serviceCache = SERVICE_CACHE;
-    }
-
-    MainVerticle(int refreshInterval, String serviceCache) {
-        this.refreshInterval = refreshInterval;
-        this.serviceCache = serviceCache;
     }
 
     @Override
     public void start(Future<Void> startFuture) {
+        poller = new BackgroundPoller(vertx);
+        serviceRepository = new ServiceRepository(new DBConnector(vertx));
         Router router = Router.router(vertx);
         router.route().handler(BodyHandler.create());
-        vertx.setPeriodic(refreshInterval, timerId -> poller.pollServices(getServices()));
-        loadServices();
-        storeNewService("https://www.kry.se");
-        setRoutes(router);
-        vertx
-            .createHttpServer()
-            .requestHandler(router)
-            .listen(8080, result -> {
-                if (result.succeeded()) {
-                    System.out.println("KRY code test service started");
-                    startFuture.complete();
-                } else {
-                    startFuture.fail(result.cause());
-                }
-            });
+        serviceRepository.init().setHandler(result -> {
+            if (result.succeeded()) {
+                vertx.setPeriodic(refreshInterval, timerId -> poller.pollServices(serviceRepository.getServices()));
+                setRoutes(router);
+                vertx
+                    .createHttpServer()
+                    .requestHandler(router)
+                    .listen(8080, r -> {
+                        if (r.succeeded()) {
+                            logger.info("KRY code test service started");
+                            startFuture.complete();
+                        } else {
+                            startFuture.fail(r.cause());
+                        }
+                    });
+            } else {
+                startFuture.fail(result.cause());
+            }
+        });
+
     }
 
     private void setRoutes(Router router) {
+        setStaticRoute(router);
+        setListServices(router);
+        setPostService(router);
+        setDeleteService(router);
+        setConfigService(router);
+    }
+
+    private void setConfigService(Router router) {
         router.route("/").handler(StaticHandler.create());
         router.get("/config").handler(req -> {
             JsonObject config = new JsonObject();
@@ -70,107 +76,82 @@ public class MainVerticle extends AbstractVerticle {
                 .putHeader("content-type", "application/json")
                 .end(config.encode());
         });
-        router.get("/service")
-            .handler(
-                req -> {
-                    List<JsonObject> jsonServices =
-                        services.entrySet()
-                            .stream()
-                            .map(
-                                service ->
-                                    new JsonObject()
-                                        .put("name", service.getKey())
-                                        .put(
-                                            "status",
-                                            service.getValue()))
-                            .collect(Collectors.toList());
+    }
+
+    private void setDeleteService(Router router) {
+        router.delete("/service/:service").handler(req -> {
+            String service = new String(Base64.getDecoder().decode(req.pathParam("service")));
+            logger.info("Deleting: " + service);
+            serviceRepository.remove(service).setHandler(asyncResult -> {
+                if (asyncResult.succeeded()) {
+                    logger.info("Delete successful");
                     req.response()
-                        .putHeader("content-type", "application/json")
-                        .end(new JsonArray(jsonServices).encode());
-                });
-        router.post("/service")
-            .handler(
-                req -> {
-                    JsonObject jsonBody = req.getBodyAsJson();
-                    String newUrl = jsonBody.getString("url");
-
-                    if (!validURL(newUrl)) {
-                        req.fail(412);
-                        return;
-                    }
-
-                    storeNewService(newUrl);
-                    req.response().putHeader("content-type", "text/plain").end("OK");
-                });
-        router.delete("/service/:id")
-            .handler(
-                ctx -> {
-                    System.out.println(ctx.request().getParam("id"));
-                    String service = new String(Base64.getDecoder().decode(ctx.request().getParam("id")));
-                    if (services.containsKey(service)) {
-                        removeService(service);
-                        ctx.response().setStatusCode(200).putHeader("content-type", "text/plain").end("OK");
-                    } else {
-                        ctx.fail(404);
-                    }
+                        .putHeader("content-type", "text/plain")
+                        .end("OK");
+                } else {
+                    logger.error("Failed to delete", asyncResult.cause());
+                    req.response()
+                        .setStatusCode(500)
+                        .putHeader("content-type", "text/plain")
+                        .end("Internal error");
                 }
-            );
+            });
+        });
     }
 
-    void storeNewService(String service) {
-        services.putIfAbsent(service, "UNKNOWN");
-        cacheServices();
-    }
-
-    void removeService(String service) {
-        services.remove(service);
-        cacheServices();
-    }
-
-    HashMap<String, String> getServices() {
-        return services;
-    }
-
-    void loadServices() {
-        ObjectInputStream objectInputStream = null;
-        HashMap<String, String> services = null;
-        try {
-            objectInputStream = new ObjectInputStream(new FileInputStream(serviceCache));
-            services = (HashMap<String, String>) objectInputStream.readObject();
-            objectInputStream.close();
-        } catch (IOException | ClassNotFoundException e) {
-            System.out.println("Couldn't load cached file");
-            services = new HashMap<>();
-        }
-
-        this.services = services;
-    }
-
-    private void cacheServices() {
-        try {
-            ObjectOutputStream objectOutputStream =
-                new ObjectOutputStream(new FileOutputStream(serviceCache));
-
-            objectOutputStream.writeObject(services);
-            objectOutputStream.close();
-        } catch (IOException e) {
-            System.out.println("Could not store service in cache.");
-        }
-    }
-
-    /**
-     * @return boolean whether or not the URL is valid. Can be further extended.
-     */
-    boolean validURL(String url) {
-        try {
-            URI uri = new URI(url).parseServerAuthority();
-            if (!uri.getScheme().equals("http") && !uri.getScheme().equals("https")) {
-                return false;
+    private void setPostService(Router router) {
+        router.post("/service").handler(req -> {
+            JsonObject jsonBody = req.getBodyAsJson();
+            JsonObject service;
+            try {
+                service = buildServiceObject(jsonBody.getString("url"), jsonBody.getString("name"));
+            } catch (MalformedURLException e) {
+                req.response()
+                    .setStatusCode(400)
+                    .putHeader("content-type", "text/plain")
+                    .end("Invalid url: " + jsonBody.getString("url"));
+                return;
             }
-        } catch (URISyntaxException e) {
-            return false;
-        }
-
-        return true;
+            serviceRepository.upsert(service).setHandler(asyncResult -> {
+                if (asyncResult.succeeded()) {
+                    logger.info("Post successful");
+                    req.response()
+                        .putHeader("content-type", "text/plain")
+                        .end("OK");
+                } else {
+                    logger.error("Post failed", asyncResult.cause());
+                    req.response()
+                        .setStatusCode(500)
+                        .putHeader("content-type", "text/plain")
+                        .end("Internal error");
+                }
+            });
+        });
     }
+
+    private JsonObject buildServiceObject(String url, String name) throws MalformedURLException {
+        return new JsonObject()
+            .put("url", new URL(url).toString())
+            .put("name", name != null ? name : url)
+            .put("createdAt", Instant.now())
+            .put("status", "UNKNOWN");
+    }
+
+    private void setListServices(Router router) {
+        router.get("/service").handler(req -> {
+            logger.info("List");
+            List<JsonObject> jsonServices = serviceRepository.getServices();
+            req.response()
+                .putHeader("content-type", "application/json")
+                .end(new JsonArray(jsonServices).encode());
+        });
+    }
+
+    private void setStaticRoute(Router router) {
+        router.route("/*").handler(StaticHandler.create());
+    }
+
 }
+
+
+
